@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marketing Analytics Dashboard — Pempek Bunda Putnad</title>
+  <!-- Mencegah halaman dashboard internal terindeks mesin pencari -->
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#B10E25" />
+
+  <!-- Google Fonts sesuai Brand Guideline -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =====================================================================
+       BRAND TOKENS (100% SOLID COLORS - TANPA GRADASI)
+    ====================================================================== */
+    :root {
+      --color-crimson: #B10E25;
+      --color-crimson-dark: #8A091B;
+      --color-gold: #FEBF21;
+      --color-orange: #FF751F;
+      --color-white: #FFFFFF;
+      --color-cream: #FFF3D4;
+      --color-ink: #241013;
+      --color-green: #15803D;
+
+      --font-display: 'Lilita One', cursive, sans-serif;
+      --font-body: 'Poppins', sans-serif;
+
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-pill: 999px;
+      --shadow-hard: 0 4px 0 var(--color-ink);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-cream);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* =====================================================================
+       LOGIN GATE (PROTEKSI PIN SEDERHANA)
+    ====================================================================== */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-color: var(--color-crimson);
+    }
+
+    .login-card {
+      background-color: var(--color-cream);
+      border: 4px solid var(--color-ink);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 0 var(--color-gold);
+    }
+
+    .login-badge {
+      display: inline-block;
+      background-color: var(--color-gold);
+      color: var(--color-ink);
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--color-ink);
+      margin-bottom: 12px;
+    }
+
+    .login-card h1 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      color: var(--color-crimson);
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+
+    .login-card p {
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      color: var(--color-ink);
+    }
+
+    .pin-input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 6px;
+      border: 3px solid var(--color-ink);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-white);
+      color: var(--color-ink);
+      margin-bottom: 14px;
+      outline: none;
+    }
+
+    .pin-input:focus {
+      border-color: var(--color-crimson);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px 18px;
+      background-color: var(--color-crimson);
+      color: var(--color-gold);
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+      border: 3px solid var(--color-ink);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      box-shadow: var(--shadow-hard);
+      transition: transform 0.1s ease;
+    }
+
+    .btn-primary:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 var(--color-ink);
+    }
+
+    .error-msg {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-crimson);
+      background-color: var(--color-white);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--color-crimson);
+      display: none;
+    }
+
+    /* =====================================================================
+       DASHBOARD MAIN LAYOUT
+    ====================================================================== */
+    .dashboard-container {
+      display: none;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+
+    .topbar {
+      background-color: var(--color-crimson);
+      color: var(--color-white);
+      border: 3px solid var(--color-ink);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: var(--shadow-hard);
+      margin-bottom: 20px;
+    }
+
+    .topbar-title h1 {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      color: var(--color-gold);
+      line-height: 1.15;
+    }
+
+    .topbar-title p {
+      font-size: 0.8rem;
+      color: var(--color-cream);
+      margin-top: 2px;
+    }
+
+    .topbar-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .period-select {
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--color-ink);
+      background-color: var(--color-gold);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .btn-refresh {
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--color-ink);
+      background-color: var(--color-white);
+      color: var(--color-ink);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .btn-logout {
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--color-white);
+      background-color: var(--color-crimson-dark);
+      color: var(--color-white);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    /* Demo Notice Banner jika URL Apps Script belum diisi */
+    .demo-banner {
+      background-color: var(--color-orange);
+      color: var(--color-white);
+      border: 3px solid var(--color-ink);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    /* =====================================================================
+       KPI SUMMARY CARDS (3 METRIK UTAMA)
+    ====================================================================== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    @media (min-width: 640px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .kpi-card {
+      background-color: var(--color-white);
+      border: 3px solid var(--color-ink);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: var(--shadow-hard);
+    }
+
+    .kpi-card.highlight {
+      background-color: var(--color-gold);
+    }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-ink);
+      opacity: 0.85;
+    }
+
+    .kpi-value {
+      font-family: var(--font-display);
+      font-size: 2.3rem;
+      color: var(--color-crimson);
+      line-height: 1.1;
+      margin: 6px 0 4px;
+    }
+
+    .kpi-sub {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    /* =====================================================================
+       DETAIL EVENT TRACKING TOMBOL (B2C, B2B, PO, KATALOG, INSTAGRAM)
+    ====================================================================== */
+    .section-card {
+      background-color: var(--color-white);
+      border: 3px solid var(--color-ink);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-hard);
+      margin-bottom: 22px;
+    }
+
+    .section-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: var(--color-crimson);
+      margin-bottom: 4px;
+    }
+
+    .section-card > p {
+      font-size: 0.82rem;
+      color: #5A3A3E;
+      margin-bottom: 18px;
+    }
+
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .event-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .event-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      margin-left: 6px;
+      border: 1.5px solid var(--color-ink);
+    }
+
+    .tag-lead {
+      background-color: var(--color-gold);
+      color: var(--color-ink);
+    }
+
+    .tag-nav {
+      background-color: var(--color-cream);
+      color: var(--color-ink);
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 18px;
+      background-color: var(--color-cream);
+      border: 2px solid var(--color-ink);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--color-crimson);
+      transition: width 0.5s ease;
+    }
+
+    .bar-fill.orange { background-color: var(--color-orange); }
+    .bar-fill.gold { background-color: var(--color-gold); }
+
+    /* =====================================================================
+       TABEL RINCIAN POSISI TOMBOL (CONVERSION ATTRIBUTION)
+    ====================================================================== */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      text-align: left;
+      border-bottom: 2px solid rgba(36, 16, 19, 0.12);
+    }
+
+    th {
+      background-color: var(--color-cream);
+      font-weight: 700;
+      color: var(--color-crimson);
+    }
+
+    .count-pill {
+      display: inline-block;
+      background-color: var(--color-crimson);
+      color: var(--color-gold);
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+    }
+
+    .footer-meta {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #5A3A3E;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =====================================================================
+       1. LAYAR LOGIN PIN MARKETING
+  ====================================================================== -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <span class="login-badge">INTERNAL MARKETING</span>
+      <h1>Pempek Bunda Putnad</h1>
+      <p>Masukkan PIN akses untuk melihat laporan performa klik &amp; konversi WhatsApp dari Google Analytics 4.</p>
+      
+      <form id="loginForm">
+        <input type="password" id="pinInput" class="pin-input" placeholder="••••" maxlength="10" required autocomplete="off" />
+        <button type="submit" class="btn-primary">BUKA DASHBOARD</button>
+      </form>
+      <div id="loginError" class="error-msg">PIN salah atau gagal terhubung ke server.</div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       2. KONTEN UTAMA ANALYTICS DASHBOARD
+  ====================================================================== -->
+  <div id="dashboardApp" class="dashboard-container">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>Marketing Analytics — Bunda Putnad</h1>
+        <p id="lastUpdated">Memuat data Google Analytics 4...</p>
+      </div>
+      <div class="topbar-controls">
+        <select id="periodSelect" class="period-select" aria-label="Pilih Rentang Waktu">
+          <option value="0">Hari Ini</option>
+          <option value="7" selected>7 Hari Terakhir</option>
+          <option value="30">30 Hari Terakhir</option>
+        </select>
+        <button type="button" id="btnRefresh" class="btn-refresh">↻ Refresh</button>
+        <button type="button" id="btnLogout" class="btn-logout">Keluar</button>
+      </div>
+    </header>
+
+    <!-- Notifikasi Mode Simulasi (Hilang otomatis setelah APPS_SCRIPT_URL diisi) -->
+    <div id="demoBanner" class="demo-banner">
+      ⚠️ Mode Preview / Simulasi Aktif: Anda belum memasukkan URL Web App Google Apps Script di dalam kode <code>dashboard.html</code>. Data di bawah ini adalah contoh simulasi.
+    </div>
+
+    <!-- KPI UTAMA -->
+    <section class="kpi-grid" aria-label="Ringkasan Performa">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">Total Klik WhatsApp (Leads)</div>
+        <div class="kpi-value" id="kpiLeads">0</div>
+        <div class="kpi-sub">Gabungan Order B2C + B2B</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Pengunjung Aktif (Users)</div>
+        <div class="kpi-value" id="kpiUsers">0</div>
+        <div class="kpi-sub">Orang yang membuka landing page</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Conversion Rate ke WA</div>
+        <div class="kpi-value" id="kpiCvr">0%</div>
+        <div class="kpi-sub">Persentase pengunjung klik WA</div>
+      </div>
+    </section>
+
+    <!-- GRAFIK BATANG PERFORMA SETIAP TOMBOL -->
+    <section class="section-card">
+      <h2>Performa Klik Setiap Tombol</h2>
+      <p>Perbandingan jumlah klik pengunjung pada setiap jalur aksi di landing page.</p>
+
+      <div class="event-list">
+        <!-- Event 1: WA B2C -->
+        <div>
+          <div class="event-row-header">
+            <span>1. WhatsApp Jalur B2C (Personal/Harian) <span class="event-tag tag-lead">Konversi Utama</span></span>
+            <span id="valB2C">0 klik</span>
+          </div>
+          <div class="bar-track"><div id="barB2C" class="bar-fill"></div></div>
+        </div>
+
+        <!-- Event 2: WA B2B -->
+        <div>
+          <div class="event-row-header">
+            <span>2. WhatsApp Jalur B2B (Acara/Bulk) <span class="event-tag tag-lead">Konversi Utama</span></span>
+            <span id="valB2B">0 klik</span>
+          </div>
+          <div class="bar-track"><div id="barB2B" class="bar-fill orange"></div></div>
+        </div>
+
+        <!-- Event 3: Tombol Pemesanan PO -->
+        <div>
+          <div class="event-row-header">
+            <span>3. Tombol [1] Pemesanan PO <span class="event-tag tag-nav">Minat Order</span></span>
+            <span id="valPO">0 klik</span>
+          </div>
+          <div class="bar-track"><div id="barPO" class="bar-fill gold"></div></div>
+        </div>
+
+        <!-- Event 4: Katalog Menu -->
+        <div>
+          <div class="event-row-header">
+            <span>4. Tombol [2] Katalog Menu &amp; Harga <span class="event-tag tag-nav">Eksplorasi</span></span>
+            <span id="valKatalog">0 klik</span>
+          </div>
+          <div class="bar-track"><div id="barKatalog" class="bar-fill"></div></div>
+        </div>
+
+        <!-- Event 5: Instagram -->
+        <div>
+          <div class="event-row-header">
+            <span>5. Tombol [3] Instagram (@bunda.putnad) <span class="event-tag tag-nav">Social Media</span></span>
+            <span id="valIG">0 klik</span>
+          </div>
+          <div class="bar-track"><div id="barIG" class="bar-fill orange"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABEL RINCIAN PERANGKAT PENGUNJUNG -->
+    <section class="section-card">
+      <h2>Rincian Klik Berdasarkan Perangkat</h2>
+      <p>Mengetahui apakah calon pembeli lebih sering klik tombol dari HP (Mobile) atau Komputer (Desktop).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama Event</th>
+              <th>Jenis Perangkat</th>
+              <th>Jumlah Klik</th>
+            </tr>
+          </thead>
+          <tbody id="breakdownTableBody">
+            <tr>
+              <td colspan="3">Memuat rincian data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="footer-meta">
+      Sumber Data: Google Analytics 4 (GA4) • Pempek Bunda Putnad Jakarta
+    </p>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * KONFIGURASI KONEKSI GOOGLE APPS SCRIPT
+     * Tempelkan URL Web App dari Google Apps Script Anda di bawah ini:
+     * =========================================================================
+     */
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUbb5tx2E7Efvygjgo6oEoLr4kY_uIIhZGG1Co-9Dcm_LJKd0DNCSWrIIeRq27RNtl0w/exec';
+
+    const loginScreen = document.getElementById('loginScreen');
+    const dashboardApp = document.getElementById('dashboardApp');
+    const loginForm = document.getElementById('loginForm');
+    const pinInput = document.getElementById('pinInput');
+    const loginError = document.getElementById('loginError');
+    const periodSelect = document.getElementById('periodSelect');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const btnLogout = document.getElementById('btnLogout');
+    const demoBanner = document.getElementById('demoBanner');
+
+    let savedPin = sessionStorage.getItem('bp_marketing_pin') || '';
+
+    // Mapping nama event teknis ke bahasa Indonesia yang mudah dibaca tim marketing
+    const EVENT_LABELS = {
+      'konversi_wa_b2c': 'Klik WA B2C (Personal)',
+      'konversi_wa_b2b': 'Klik WA B2B (Acara/Bulk)',
+      'klik_pemesanan_po': 'Buka Pilihan Pemesanan PO',
+      'klik_katalog_menu': 'Lihat Katalog Menu & Harga',
+      'klik_instagram': 'Buka Instagram @bunda.putnad'
+    };
+
+    // Jika sudah login di sesi browser ini, langsung muat dashboard
+    if (savedPin) {
+      showDashboard();
+      fetchAnalyticsData(savedPin, periodSelect.value);
+    }
+
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const enteredPin = pinInput.value.trim();
+      if (!enteredPin) return;
+      loginError.style.display = 'none';
+      fetchAnalyticsData(enteredPin, periodSelect.value, true);
+    });
+
+    periodSelect.addEventListener('change', function() {
+      fetchAnalyticsData(savedPin, periodSelect.value);
+    });
+
+    btnRefresh.addEventListener('click', function() {
+      btnRefresh.textContent = 'Memuat...';
+      fetchAnalyticsData(savedPin, periodSelect.value).finally(() => {
+        btnRefresh.textContent = '↻ Refresh';
+      });
+    });
+
+    btnLogout.addEventListener('click', function() {
+      sessionStorage.removeItem('bp_marketing_pin');
+      savedPin = '';
+      pinInput.value = '';
+      dashboardApp.style.display = 'none';
+      loginScreen.style.display = 'flex';
+    });
+
+    function showDashboard() {
+      loginScreen.style.display = 'none';
+      dashboardApp.style.display = 'block';
+    }
+
+    async function fetchAnalyticsData(pin, days, isInitialLogin = false) {
+      // Jika URL Apps Script belum dipasang, jalankan Mode Simulasi agar tampilan bisa langsung dicek
+      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_URL_WEB_APP')) {
+        if (pin !== '2026') {
+          loginError.textContent = 'PIN Mode Simulasi adalah: 2026';
+          loginError.style.display = 'block';
+          return;
+        }
+        savedPin = pin;
+        sessionStorage.setItem('bp_marketing_pin', pin);
+        showDashboard();
+        demoBanner.style.display = 'block';
+        renderDashboardData(getMockAnalyticsData(days));
+        return;
+      }
+
+      try {
+        const url = `${APPS_SCRIPT_URL}?pin=${encodeURIComponent(pin)}&days=${encodeURIComponent(days)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.status !== 'success') {
+          if (isInitialLogin) {
+            loginError.textContent = data.message || 'PIN tidak valid.';
+            loginError.style.display = 'block';
+          }
+          return;
+        }
+
+        savedPin = pin;
+        sessionStorage.setItem('bp_marketing_pin', pin);
+        demoBanner.style.display = 'none';
+        showDashboard();
+        renderDashboardData(data);
+
+      } catch (err) {
+        if (isInitialLogin) {
+          loginError.textContent = 'Gagal terhubung ke Google Apps Script. Pastikan deployment diatur ke "Anyone".';
+          loginError.style.display = 'block';
+        }
+      }
+    }
+
+    function renderDashboardData(data) {
+      document.getElementById('lastUpdated').textContent = `Diperbarui: ${data.updatedAt} WIB`;
+
+      const users = data.summary.activeUsers || 0;
+      const leads = data.summary.totalWaLeads || 0;
+      const cvr = users > 0 ? ((leads / users) * 100).toFixed(1) : '0.0';
+
+      document.getElementById('kpiLeads').textContent = leads.toLocaleString('id-ID');
+      document.getElementById('kpiUsers').textContent = users.toLocaleString('id-ID');
+      document.getElementById('kpiCvr').textContent = `${cvr}%`;
+
+      const ev = data.events;
+      const maxVal = Math.max(
+        ev.konversi_wa_b2c,
+        ev.konversi_wa_b2b,
+        ev.klik_pemesanan_po,
+        ev.klik_katalog_menu,
+        ev.klik_instagram,
+        1
+      );
+
+      updateBar('valB2C', 'barB2C', ev.konversi_wa_b2c, maxVal);
+      updateBar('valB2B', 'barB2B', ev.konversi_wa_b2b, maxVal);
+      updateBar('valPO', 'barPO', ev.klik_pemesanan_po, maxVal);
+      updateBar('valKatalog', 'barKatalog', ev.klik_katalog_menu, maxVal);
+      updateBar('valIG', 'barIG', ev.klik_instagram, maxVal);
+
+      // Render tabel breakdown posisi tombol
+      const tbody = document.getElementById('breakdownTableBody');
+      if (!data.breakdown || data.breakdown.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3">Belum ada data klik tercatat pada periode ini.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.breakdown.map(item => `
+        <tr>
+          <td><strong>${EVENT_LABELS[item.event] || item.event}</strong></td>
+          <td>${item.location}</td>
+          <td><span class="count-pill">${item.count}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function updateBar(textId, barId, value, maxVal) {
+      document.getElementById(textId).textContent = `${value.toLocaleString('id-ID')} klik`;
+      const pct = Math.round((value / maxVal) * 100);
+      document.getElementById(barId).style.width = `${pct}%`;
+    }
+
+    // Data simulasi realistis untuk testing sebelum GA4 aktif
+    function getMockAnalyticsData(days) {
+      const multiplier = days == 0 ? 1 : (days == 7 ? 6 : 24);
+      const b2c = 14 * multiplier;
+      const b2b = 4 * multiplier;
+      const users = 95 * multiplier;
+      return {
+        updatedAt: new Date().toLocaleString('id-ID'),
+        summary: {
+          activeUsers: users,
+          totalWaLeads: b2c + b2b
+        },
+        events: {
+          konversi_wa_b2c: b2c,
+          konversi_wa_b2b: b2b,
+          klik_pemesanan_po: 22 * multiplier,
+          klik_katalog_menu: 48 * multiplier,
+          klik_instagram: 19 * multiplier
+        },
+        breakdown: [
+          { event: 'klik_katalog_menu', location: 'Hero Primary Button', count: 34 * multiplier },
+          { event: 'konversi_wa_b2c', location: 'Modal PO Decision', count: 9 * multiplier },
+          { event: 'klik_pemesanan_po', location: 'Hero Primary Button', count: 16 * multiplier },
+          { event: 'konversi_wa_b2c', location: 'Bottom CTA Box', count: 5 * multiplier },
+          { event: 'konversi_wa_b2b', location: 'Modal PO Decision', count: 3 * multiplier },
+          { event: 'klik_instagram', location: 'Hero Primary Button', count: 14 * multiplier }
+        ]
+      };
+    }
+  </script>
+</body>
+</html>
