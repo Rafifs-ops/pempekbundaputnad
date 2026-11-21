@@ -230,6 +230,44 @@
       cursor: pointer;
     }
 
+    /* Tombol Indikator Live Auto-Refresh */
+    .btn-live {
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--color-ink);
+      background-color: var(--color-green);
+      color: var(--color-white);
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-live.paused {
+      background-color: #6B7280;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--color-gold);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulseLive 1.4s infinite;
+    }
+
+    .btn-live.paused .live-dot {
+      animation: none;
+      background-color: var(--color-white);
+    }
+
+    @keyframes pulseLive {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
     /* Demo Notice Banner jika URL Apps Script belum diisi */
     .demo-banner {
       background-color: var(--color-orange);
@@ -444,10 +482,15 @@
       </div>
       <div class="topbar-controls">
         <select id="periodSelect" class="period-select" aria-label="Pilih Rentang Waktu">
+          <option value="realtime" selected>⚡ Real-Time (30 Menit Terakhir)</option>
           <option value="0">Hari Ini</option>
-          <option value="7" selected>7 Hari Terakhir</option>
+          <option value="7">7 Hari Terakhir</option>
           <option value="30">30 Hari Terakhir</option>
         </select>
+        <button type="button" id="btnLiveToggle" class="btn-live" title="Klik untuk menjeda atau mengaktifkan update otomatis setiap 15 detik">
+          <span class="live-dot"></span>
+          <span id="liveLabel">LIVE: ON</span>
+        </button>
         <button type="button" id="btnRefresh" class="btn-refresh">↻ Refresh</button>
         <button type="button" id="btnLogout" class="btn-logout">Keluar</button>
       </div>
@@ -575,11 +618,16 @@
     const pinInput = document.getElementById('pinInput');
     const loginError = document.getElementById('loginError');
     const periodSelect = document.getElementById('periodSelect');
+    const btnLiveToggle = document.getElementById('btnLiveToggle');
+    const liveLabel = document.getElementById('liveLabel');
     const btnRefresh = document.getElementById('btnRefresh');
     const btnLogout = document.getElementById('btnLogout');
     const demoBanner = document.getElementById('demoBanner');
 
     let savedPin = sessionStorage.getItem('bp_marketing_pin') || '';
+    let isLiveAutoRefresh = true;
+    let liveIntervalTimer = null;
+    const REFRESH_INTERVAL_MS = 15000; // Update otomatis setiap 15 detik
 
     // Mapping nama event teknis ke bahasa Indonesia yang mudah dibaca tim marketing
     const EVENT_LABELS = {
@@ -594,7 +642,40 @@
     if (savedPin) {
       showDashboard();
       fetchAnalyticsData(savedPin, periodSelect.value);
+      startLivePolling();
     }
+
+    function startLivePolling() {
+      stopLivePolling();
+      if (!isLiveAutoRefresh) return;
+      liveIntervalTimer = setInterval(() => {
+        // Hanya tarik data jika tab browser sedang aktif dilihat (hemat kuota API)
+        if (savedPin && !document.hidden) {
+          fetchAnalyticsData(savedPin, periodSelect.value);
+        }
+      }, REFRESH_INTERVAL_MS);
+    }
+
+    function stopLivePolling() {
+      if (liveIntervalTimer) {
+        clearInterval(liveIntervalTimer);
+        liveIntervalTimer = null;
+      }
+    }
+
+    btnLiveToggle.addEventListener('click', function() {
+      isLiveAutoRefresh = !isLiveAutoRefresh;
+      if (isLiveAutoRefresh) {
+        btnLiveToggle.classList.remove('paused');
+        liveLabel.textContent = 'LIVE: ON';
+        fetchAnalyticsData(savedPin, periodSelect.value);
+        startLivePolling();
+      } else {
+        btnLiveToggle.classList.add('paused');
+        liveLabel.textContent = 'LIVE: PAUSE';
+        stopLivePolling();
+      }
+    });
 
     loginForm.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -616,6 +697,7 @@
     });
 
     btnLogout.addEventListener('click', function() {
+      stopLivePolling();
       sessionStorage.removeItem('bp_marketing_pin');
       savedPin = '';
       pinInput.value = '';
@@ -639,6 +721,7 @@
         savedPin = pin;
         sessionStorage.setItem('bp_marketing_pin', pin);
         showDashboard();
+        startLivePolling();
         demoBanner.style.display = 'block';
         renderDashboardData(getMockAnalyticsData(days));
         return;
@@ -661,6 +744,7 @@
         sessionStorage.setItem('bp_marketing_pin', pin);
         demoBanner.style.display = 'none';
         showDashboard();
+        startLivePolling();
         renderDashboardData(data);
 
       } catch (err) {
