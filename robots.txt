@@ -1,0 +1,6 @@
+# robots.txt — Pempek Bunda Putnad
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+
+Sitemap: https://pempekbundaputnad.vercel.app/sitemap.xml
